@@ -12,7 +12,7 @@ do
     sleep 4
 done
 
-create_user_stmt='create user mydb_slave_user@"%" IDENTIFIED BY "mydb_slave_pwd";'
+create_user_stmt='CREATE USER IF NOT EXISTS mydb_slave_user@"%" IDENTIFIED BY "mydb_slave_pwd";'
 docker exec mysql_master sh -c "export MYSQL_PWD=111; mysql -u root -e '$create_user_stmt'"
 
 priv_stmt='GRANT REPLICATION SLAVE ON *.* TO mydb_slave_user@"%"; FLUSH PRIVILEGES;'
@@ -45,3 +45,18 @@ docker exec mysql_slave sh -c "exit"
 docker exec mysql_slave sh -c "export MYSQL_PWD=111; mysql -u root -e 'start slave'"
 
 docker exec mysql_slave sh -c "export MYSQL_PWD=111; mysql -u root -e 'SHOW SLAVE STATUS \G'"
+
+until docker-compose exec mysql_slave2 sh -c 'export MYSQL_PWD=111; mysql -u root -e ";"'
+do
+    echo "Waiting for mysql_slave2 database connection..."
+    sleep 4
+done
+
+docker exec mysql_slave2 sh -c "$start_slave_cmd"
+
+
+docker exec mysql_slave2 sh -c "export MYSQL_PWD=111; mysql -u root -e 'reset slave'"
+
+docker exec mysql_slave2 sh -c "export MYSQL_PWD=111; mysql -u root -e 'start slave'"
+
+docker exec mysql_slave2 sh -c "export MYSQL_PWD=111; mysql -u root -e 'SHOW SLAVE STATUS \G'"

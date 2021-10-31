@@ -3,6 +3,6 @@
 skip-host-cache
 skip-name-resolve
 
-server-id = 2
+server-id = 3
 log_bin = mysql-bin
 binlog_do_db = mydb
